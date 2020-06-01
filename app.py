@@ -23,15 +23,24 @@ def home():
 @app.route('/new', methods = ['POST', 'GET'])
 def create_buggy():
   if request.method == 'GET':
-    return render_template("buggy-form.html")
+    con = sql.connect(DATABASE_FILE)
+    con.row_factory = sql.Row
+    cur = con.cursor()
+    cur.execute("SELECT * FROM buggies")
+    record = cur.fetchone();
+    return render_template("buggy-form.html", buggy = record)
   elif request.method == 'POST':
     msg=""
+    qty_wheels = request.form['qty_wheels']
+    if not qty_wheels.isdigit():
+      msg = f"This is not a number: {qty_wheels}"
+      return render_template("buggy-form.html", msg = msg) 
+    flag_color = request.form['flag_color']
+    msg = f"flag_color={flag_color}" 
     try:
-      qty_wheels = request.form['qty_wheels']
-      msg = f"qty_wheels={qty_wheels}" 
       with sql.connect(DATABASE_FILE) as con:
         cur = con.cursor()
-        cur.execute("UPDATE buggies set qty_wheels=? WHERE id=?", (qty_wheels, DEFAULT_BUGGY_ID))
+        cur.execute("UPDATE buggies set qty_wheels=?, flag_color=? WHERE id=?", (qty_wheels, flag_color, DEFAULT_BUGGY_ID))
         con.commit()
         msg = "Record successfully saved"
     except:
