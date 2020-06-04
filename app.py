@@ -22,7 +22,7 @@ def home():
 #------------------------------------------------------------
 @app.route('/new', methods = ['POST', 'GET'])
 def create_buggy():
-  if request.method == 'GET':
+  if request.method == 'GET': 
     con = sql.connect(DATABASE_FILE)
     con.row_factory = sql.Row
     cur = con.cursor()
@@ -31,10 +31,15 @@ def create_buggy():
     return render_template("buggy-form.html", buggy = record)
   elif request.method == 'POST':
     msg=""
+    violations = ""
     qty_wheels = request.form['qty_wheels']
     if not qty_wheels.isdigit():
       msg = f"This is not a number: {qty_wheels}"
-      return render_template("buggy-form.html", msg = msg) 
+      return render_template("buggy-form.html", msg = msg)
+    if int(qty_wheels) % 2 != 0 or int(qty_wheels) < 4:
+      violations = "You have violated the rules!! "
+    else: 
+      violations = "The rules have been kept intact, good!" 
     flag_color = request.form['flag_color']
     msg = f"flag_color={flag_color}" 
     flag_pattern = request.form['flag_pattern']
@@ -50,7 +55,7 @@ def create_buggy():
       msg = "error in update operation"
     finally:
       con.close()
-      return render_template("updated.html", msg = msg)
+      return render_template("updated.html", msg = msg, violations = violations)
 
 #------------------------------------------------------------
 # a page for displaying the buggy
