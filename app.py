@@ -28,7 +28,7 @@ def create_buggy():
     cur = con.cursor()
     cur.execute("SELECT * FROM buggies")
     record = cur.fetchone();
-    return render_template("buggy-form.html", buggy = record)
+    return render_template("buggy-form.html", buggy=None)
   elif request.method == 'POST':
     msg=""
     violations = ""
@@ -44,12 +44,14 @@ def create_buggy():
     msg = f"flag_color={flag_color}" 
     flag_pattern = request.form['flag_pattern']
     msg = f"flag_pattern={flag_pattern}"
+    buggy_id = request.form['id']
     try:
       with sql.connect(DATABASE_FILE) as con:
         cur = con.cursor()
-        cur.execute("INSERT INTO buggies (qty_wheels) VALUES (?)", (qty_wheels, ))
-        cur.execute("INSERT INTO buggies (flag_color) VALUES (?)", (flag_color, ))
-        cur.execute("INSERT INTO buggies (flag_pattern) VALUES (?)", (flag_pattern, ))
+        if buggy_id.isdigit():
+          cur.execute("UPDATE buggies set qty_wheels=?, flag_color=?, flag_pattern=? WHERE id=?", (qty_wheels, flag_color, flag_pattern, buggy_id))  
+        else:
+          cur.execute("INSERT INTO buggies (qty_wheels, flag_color, flag_pattern) VALUES (?, ?, ?)", (qty_wheels, flag_color, flag_pattern,))
         con.commit()
         msg = "Record successfully saved"
     except:
@@ -72,11 +74,16 @@ def show_buggies():
   return render_template("buggy.html", buggies = records)
 
 #------------------------------------------------------------
-# a page for displaying the buggy
+# a page for edit  the buggy
 #------------------------------------------------------------
-@app.route('/new')
-def edit_buggy():
-  return render_template("buggy-form.html")
+@app.route('/edit/<buggy_id>')
+def edit_buggy(buggy_id):
+  con = sql.connect(DATABASE_FILE)
+  con.row_factory = sql.Row
+  cur = con.cursor()
+  cur.execute("SELECT * FROM buggies WHERE id=?", (buggy_id,))
+  record = cur.fetchone();
+  return render_template("buggy-form.html", buggy=record)
 
 
 #------------------------------------------------------------
@@ -120,6 +127,12 @@ def delete_buggy():
     con.close()
     return render_template("updated.html", msg = msg)
 
+@app.route('/poster')
+def poster():
+   return render_template('poster.html')
+
 
 if __name__ == '__main__':
    app.run(debug = True, host="0.0.0.0")
+
+          

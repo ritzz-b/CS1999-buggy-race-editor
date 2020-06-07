@@ -4,9 +4,16 @@
 
 {% block content %}
 
-  <h1>Make buggy</h1>
+  <h1>
+    {% if buggy %}
+    Edit buggy #"{{ buggy['id']}}"
+    {% else %}
+    Create buggy
+    {% endif %}
+  </h1>
   <p> {{msg}} </p>
   <form action="/new" method="post">
+    <input type="hidden" name="id" value="{{buggy['id']}}" />
     <label for="qty_wheels">Number of wheels:</label>
     <input type="text" name="qty_wheels" value="{{buggy['qty_wheels']}}"/>
     <p><label for="flag_color">Colour of flag:</label>
@@ -26,4 +33,3 @@
     <a href="/" class="button">home</a>
    </p>
 {% endblock %}
-
